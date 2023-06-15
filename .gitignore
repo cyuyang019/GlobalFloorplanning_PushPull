@@ -3,3 +3,5 @@ output.txt
 pprun
 ppsolver.o
 ppmodule.o
+test
+output.png

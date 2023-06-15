@@ -18,6 +18,8 @@ PPSolver::~PPSolver() {
 void PPSolver::setOutline(int width, int height) {
     DieWidth = (float) width;
     DieHeight = (float) height;
+    xMaxMovement = DieWidth / 5000.;
+    yMaxMovement = DieHeight / 5000.;
 }
 
 void PPSolver::setSoftModuleNum(int num) {
@@ -125,8 +127,10 @@ void PPSolver::calcModuleForce() {
                 continue;
 
             distance -= curModule->radius + pushModule->radius;
+            distance = -distance;
             x_distance = distance * std::cos(angle);
             y_distance = distance * std::sin(angle);
+            //std::cout << x_distance << " " << y_distance << std::endl;
             float force = 1e5 * distance;
             x_force -= force * ( x_distance / distance );
             y_force -= force * ( y_distance / distance );
@@ -141,15 +145,25 @@ void PPSolver::calcModuleForce() {
     //}
 }
 
-void PPSolver::setTimeSpan(float in_time) {
-    timeSpan = in_time;
-}
-
-void PPSolver::setModuleMass(float in_mass) {
-    moduleMass = in_mass;
-}
-
 void PPSolver::moveModule() {
+    // find the maximum force in x, y direction
+    float xMax = 0, yMax = 0;
+    for ( int i = 1; i < moduleNum; i++ ) {
+        if ( std::abs(xForce[i]) > xMax )
+            xMax = std::abs(xForce[i]);
+        if ( std::abs(yForce[i]) > yMax )
+            yMax = std::abs(yForce[i]);
+    }
+
+    // scale forces if they are out of maximum tolerance value
+    float xRatio = 1, yRatio = 1;
+
+    if ( xMax > xMaxMovement )
+        xRatio = xMaxMovement / xMax;
+    if ( yMax > yMaxMovement )
+        yRatio = yMaxMovement / yMax;
+
+    // move soft modules
     PPModule* curModule;
     for ( int i = 0; i < moduleNum; i++ ) {
         if ( modules[i]->fixed == true )
@@ -157,8 +171,8 @@ void PPSolver::moveModule() {
 
         curModule = modules[i];
 
-        curModule->x += xForce[i] * timeSpan;
-        curModule->y += yForce[i] * timeSpan;
+        curModule->x += xForce[i] * xRatio;
+        curModule->y += yForce[i] * yRatio;
 
         if ( curModule->x < curModule->radius )
             curModule->x = curModule->radius;
@@ -169,9 +183,4 @@ void PPSolver::moveModule() {
         if ( curModule->y > DieHeight - curModule->radius )
             curModule->y = DieHeight - curModule->radius;
     }
-}
-
-void PPSolver::updateTimeSpan() {
-    timeSpan *= 1.0003;
-    std::cout << "current time span: " << timeSpan << std::endl;
 }

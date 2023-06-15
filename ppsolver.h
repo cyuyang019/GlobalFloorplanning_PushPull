@@ -11,8 +11,7 @@ private:
     int softModuleNum, fixedModuleNum, moduleNum;
     std::vector<PPModule*> modules;
     std::vector<float> xForce, yForce;
-    float timeSpan;
-    float moduleMass;
+    float xMaxMovement, yMaxMovement;
 public:
     PPSolver();
     ~PPSolver();
@@ -26,6 +25,7 @@ public:
     void calcModuleForce();
     void setTimeSpan(float in_time);
     void setModuleMass(float in_mass);
+    void setPushForce(float in_force);
     void moveModule();
     void updateTimeSpan();
 };
