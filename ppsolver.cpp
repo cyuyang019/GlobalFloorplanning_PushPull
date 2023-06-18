@@ -184,3 +184,18 @@ void PPSolver::moveModule() {
             curModule->y = DieHeight - curModule->radius;
     }
 }
+
+float PPSolver::calcEstimatedHPWL() {
+    float HPWL = 0;
+    for ( int i = 0; i < moduleNum; i++ ) {
+        PPModule* curModule = modules[i];
+        for ( int j = 0; j < curModule->connections.size(); j++ ) {
+            PPModule* conModule = curModule->connections[j]->module;
+            float value = curModule->connections[j]->value;
+            float x_diff = std::abs(curModule->x - conModule->x);
+            float y_diff = std::abs(curModule->y - conModule->y);
+            HPWL += ( x_diff + y_diff ) * value;
+        }
+    }
+    return HPWL / 2.;
+}

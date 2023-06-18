@@ -5,12 +5,11 @@
 #include <cstdlib>
 #include "ppmodule.h"
 #include "ppsolver.h"
-using namespace std;
 
 
 int main(int argc, char* argv[]) {
     if ( argc < 3 ) {
-        cout << "Not enough argument\n";
+        std::cout << "Not enough argument\n";
         return -1;
     }
     int dieWidth, dieHeight;
@@ -21,12 +20,12 @@ int main(int argc, char* argv[]) {
     //************************************************
     //               read input file
     //************************************************
-    ifstream istream(argv[1]);
+    std::ifstream istream(argv[1]);
     if ( istream.fail() ) {
-        cout << argv[1] << " doesn't exist.\n";
+        std::cout << argv[1] << " doesn't exist.\n";
         return -1;
     }
-    string s, m0, m1;
+    std::string s, m0, m1;
     int area, x, y, w, h, value;
 
     istream >> s >> dieWidth >> dieHeight;
@@ -38,7 +37,7 @@ int main(int argc, char* argv[]) {
         istream >> s >> area;
         PPModule* mod = new PPModule(s, dieWidth / 2., dieHeight / 2., (float) area, false);
         solver.addModule(mod);
-        cout << "Reading Soft Module " << s << "..." << endl;
+        std::cout << "Reading Soft Module " << s << "..." << std::endl;
     }
 
     istream >> s >> fixedModuleNum;
@@ -48,7 +47,7 @@ int main(int argc, char* argv[]) {
         istream >> s >> x >> y >> w >> h;
         PPModule* mod = new PPModule(s, x + w / 2., y + h / 2., (float) w * h, true);
         solver.addModule(mod);
-        cout << "Reading Fixed Module " << s << "..." << endl;
+        std::cout << "Reading Fixed Module " << s << "..." << std::endl;
     }
 
     istream >> s >> connectionNum;
@@ -56,7 +55,7 @@ int main(int argc, char* argv[]) {
     for ( int i = 0; i < connectionNum; i++ ) {
         istream >> m0 >> m1 >> value;
         solver.addConnection(m0, m1, (float) value);
-        cout << "Reading Connection " << m0 << "<->" << m1 << endl;
+        std::cout << "Reading Connection " << m0 << "<->" << m1 << std::endl;
     }
 
     istream.close();
@@ -79,7 +78,8 @@ int main(int argc, char* argv[]) {
     //************************************************
     solver.currentPosition2txt(argv[2]);
 
-    cout << "Dead Space: " << solver.calcDeadspace() << endl;
+    std::cout << "Dead Space: " << solver.calcDeadspace() << std::endl;
+    std::cout << "Estimated HPWL: " << solver.calcEstimatedHPWL() << std::endl;
 
     return 0;
 }

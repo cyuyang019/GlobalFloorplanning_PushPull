@@ -23,11 +23,8 @@ public:
     void currentPosition2txt(std::string file_name);
     float calcDeadspace();
     void calcModuleForce();
-    void setTimeSpan(float in_time);
-    void setModuleMass(float in_mass);
-    void setPushForce(float in_force);
     void moveModule();
-    void updateTimeSpan();
+    float calcEstimatedHPWL();
 };
 
 
