@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 PPSolver::PPSolver() {
     softModuleNum = 0;
@@ -36,6 +37,10 @@ void PPSolver::setFixedModuleNum(int num) {
     yForce.resize(moduleNum);
 }
 
+void PPSolver::setConnectionNum(int num) {
+    connectionNum = num;
+}
+
 void PPSolver::addModule(PPModule* in_module) {
     modules.push_back(in_module);
 }
@@ -55,13 +60,24 @@ void PPSolver::addConnection(std::string ma, std::string mb, float value) {
 
 void PPSolver::currentPosition2txt(std::string file_name) {
     std::ofstream ostream(file_name);
-    ostream << moduleNum << std::endl;
+    ostream << "BLOCK " << moduleNum << " CONNECTOIN " << connectionNum << std::endl;
     ostream << DieWidth << " " << DieHeight << std::endl;
     for ( int i = 0; i < moduleNum; i++ ) {
         ostream << modules[i]->name << " ";
         ostream << !( modules[i]->fixed ) << " ";
         ostream << modules[i]->x << " " << modules[i]->y << " ";
         ostream << modules[i]->radius << std::endl;
+    }
+    std::vector<PPModule*> added;
+    for ( int i = 0; i < moduleNum; i++ ) {
+        added.push_back(modules[i]);
+        for ( int j = 0; j < modules[i]->connections.size(); j++ ) {
+            if ( std::find(added.begin(), added.end(), modules[i]->connections[j]->module) != added.end() )
+                continue;
+            ostream << modules[i]->name << " ";
+            ostream << modules[i]->connections[j]->module->name << " ";
+            ostream << modules[i]->connections[j]->value << std::endl;
+        }
     }
     ostream.close();
 }

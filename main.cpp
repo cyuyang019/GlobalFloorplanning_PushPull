@@ -51,6 +51,7 @@ int main(int argc, char* argv[]) {
     }
 
     istream >> s >> connectionNum;
+    solver.setConnectionNum(connectionNum);
 
     for ( int i = 0; i < connectionNum; i++ ) {
         istream >> m0 >> m1 >> value;

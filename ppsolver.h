@@ -8,7 +8,7 @@
 class PPSolver {
 private:
     float DieWidth, DieHeight;
-    int softModuleNum, fixedModuleNum, moduleNum;
+    int softModuleNum, fixedModuleNum, moduleNum, connectionNum;
     std::vector<PPModule*> modules;
     std::vector<float> xForce, yForce;
     float xMaxMovement, yMaxMovement;
@@ -18,6 +18,7 @@ public:
     void setOutline(int width, int height);
     void setSoftModuleNum(int num);
     void setFixedModuleNum(int num);
+    void setConnectionNum(int num);
     void addModule(PPModule* in_module);
     void addConnection(std::string ma, std::string mb, float value);
     void currentPosition2txt(std::string file_name);
