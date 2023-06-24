@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     //               apply Hook's law
     //************************************************
 
-    int iteration = ( argc >= 4 ) ? std::atoi(argv[3]) : 10000;
+    int iteration = ( argc >= 4 ) ? std::atoi(argv[3]) : 1000;
 
     solver.setupPushForce(10);
     //solver.setPushForce(1e5);
