@@ -1,5 +1,7 @@
 #!/bin/bash
 
+make clean
+
 make
 
 txtFile=$1'.txt'

@@ -1,3 +1,5 @@
+make clean
+
 make
 
 echo "run" $1

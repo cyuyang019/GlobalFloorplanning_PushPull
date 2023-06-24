@@ -12,6 +12,8 @@ private:
     std::vector<PPModule*> modules;
     std::vector<float> xForce, yForce;
     float xMaxMovement, yMaxMovement;
+    float radiusRatio;
+    float pushForce;
 public:
     PPSolver();
     ~PPSolver();
@@ -26,6 +28,9 @@ public:
     void calcModuleForce();
     void moveModule();
     float calcEstimatedHPWL();
+    void setRadiusRatio(float ratio);
+    void setPushForce(float force);
+    void setupPushForce(float amplification = 1);
 };
 
 

@@ -101,7 +101,7 @@ for connection in range(total_connection_number):
     x_values = [name2pos[ss[0]][0], name2pos[ss[1]][0]]
     y_values = [name2pos[ss[0]][1], name2pos[ss[1]][1]]
     value = float(ss[2])
-    width = (value - min_value) / (max_value - min_value) * 9 + 1
+    width = (value - min_value) / (max_value - min_value) * 14 + 1
     plt.plot(x_values, y_values, color="blue",
              linestyle="-", linewidth=width, alpha=0.5)
     i += 1

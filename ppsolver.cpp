@@ -8,6 +8,8 @@
 PPSolver::PPSolver() {
     softModuleNum = 0;
     fixedModuleNum = 0;
+    radiusRatio = 1;
+    pushForce = 1e4;
 }
 
 PPSolver::~PPSolver() {
@@ -19,8 +21,8 @@ PPSolver::~PPSolver() {
 void PPSolver::setOutline(int width, int height) {
     DieWidth = (float) width;
     DieHeight = (float) height;
-    xMaxMovement = DieWidth / 5000.;
-    yMaxMovement = DieHeight / 5000.;
+    xMaxMovement = DieWidth / 3000.;
+    yMaxMovement = DieHeight / 3000.;
 }
 
 void PPSolver::setSoftModuleNum(int num) {
@@ -66,7 +68,7 @@ void PPSolver::currentPosition2txt(std::string file_name) {
         ostream << modules[i]->name << " ";
         ostream << !( modules[i]->fixed ) << " ";
         ostream << modules[i]->x << " " << modules[i]->y << " ";
-        ostream << modules[i]->radius << std::endl;
+        ostream << modules[i]->radius * radiusRatio << std::endl;
     }
     std::vector<PPModule*> added;
     for ( int i = 0; i < moduleNum; i++ ) {
@@ -113,14 +115,16 @@ void PPSolver::calcModuleForce() {
             float x_distance = pullModule->x - curModule->x;
             float y_distance = pullModule->y - curModule->y;
             float angle = std::atan2(y_distance, x_distance);
-            if ( x_distance == 0 || y_distance == 0 )
+            if ( x_distance == 0 && y_distance == 0 )
                 continue;
 
+            float curModuleRadius = curModule->radius * radiusRatio;
+            float pullModuleRadius = pullModule->radius * radiusRatio;
             float distance = calcDistance(curModule, pullModule);
-            if ( distance < curModule->radius + pullModule->radius )
+            if ( distance <= curModuleRadius + pullModuleRadius )
                 continue;
 
-            distance -= curModule->radius + pullModule->radius;
+            distance -= curModuleRadius + pullModuleRadius;
             x_distance = distance * std::cos(angle);
             y_distance = distance * std::sin(angle);
             float force = distance * pullValue;
@@ -135,19 +139,21 @@ void PPSolver::calcModuleForce() {
             float x_distance = pushModule->x - curModule->x;
             float y_distance = pushModule->y - curModule->y;
             float angle = std::atan2(y_distance, x_distance);
-            if ( x_distance == 0 || y_distance == 0 )
+            if ( x_distance == 0 && y_distance == 0 )
                 continue;
 
+            float curModuleRadius = curModule->radius * radiusRatio;
+            float pushModuleRadius = pushModule->radius * radiusRatio;
             float distance = calcDistance(curModule, pushModule);
-            if ( distance > curModule->radius + pushModule->radius )
+            if ( distance >= curModuleRadius + pushModuleRadius )
                 continue;
 
-            distance -= curModule->radius + pushModule->radius;
+            distance -= curModuleRadius + pushModuleRadius;
             distance = -distance;
             x_distance = distance * std::cos(angle);
             y_distance = distance * std::sin(angle);
-            //std::cout << x_distance << " " << y_distance << std::endl;
-            float force = 1e5 * distance;
+            //std::cout << distance << std::endl;
+            float force = pushForce * distance;
             x_force -= force * ( x_distance / distance );
             y_force -= force * ( y_distance / distance );
         }
@@ -214,4 +220,28 @@ float PPSolver::calcEstimatedHPWL() {
         }
     }
     return HPWL / 2.;
+}
+
+void PPSolver::setRadiusRatio(float ratio) {
+    radiusRatio = ratio;
+}
+
+void PPSolver::setPushForce(float force) {
+    pushForce = force;
+}
+
+void PPSolver::setupPushForce(float amplification) {
+    float maxForce = 0;
+    for ( int i = 0; i < moduleNum; i++ ) {
+        PPModule* curModule = modules[i];
+        float forces = 0;
+        for ( int j = 0; j < curModule->connections.size(); j++ ) {
+            forces += curModule->connections[j]->value;
+        }
+        if ( forces > maxForce ) {
+            maxForce = forces;
+        }
+    }
+    pushForce = maxForce * amplification;
+    std::cout << "Set push force = " << pushForce << std::endl;
 }

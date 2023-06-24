@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 #include <fstream>
 #include <string>
@@ -68,9 +69,17 @@ int main(int argc, char* argv[]) {
 
     int iteration = ( argc >= 4 ) ? std::atoi(argv[3]) : 10000;
 
-    for ( int i = 0; i < iteration; i++ ) {
-        solver.calcModuleForce();
-        solver.moveModule();
+    solver.setupPushForce(10);
+    //solver.setPushForce(1e5);
+    for ( int phase = 1; phase <= 50; phase++ ) {
+        solver.setRadiusRatio(phase * 0.02);
+        std::cout << "Setting radius ratio: " << phase * 0.02 << std::endl;
+        std::string fname = "phase" + std::to_string(phase) + ".txt";
+        solver.currentPosition2txt(fname);
+        for ( int i = 0; i < iteration; i++ ) {
+            solver.calcModuleForce();
+            solver.moveModule();
+        }
     }
 
 
@@ -80,7 +89,8 @@ int main(int argc, char* argv[]) {
     solver.currentPosition2txt(argv[2]);
 
     std::cout << "Dead Space: " << solver.calcDeadspace() << std::endl;
-    std::cout << "Estimated HPWL: " << solver.calcEstimatedHPWL() << std::endl;
+    std::cout << std::fixed;
+    std::cout << "Estimated HPWL: " << std::setprecision(2) << solver.calcEstimatedHPWL() << std::endl;
 
     return 0;
 }
