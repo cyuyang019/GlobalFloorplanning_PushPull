@@ -36,4 +36,4 @@ ppmodule_debug.o: ppmodule.cpp ppmodule.h
 
 
 clean:
-	rm -rf *.o *.gch pprun pprun phase* output*
+	rm -rf *.o *.gch pprun pprun_debug

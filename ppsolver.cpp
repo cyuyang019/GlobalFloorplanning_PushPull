@@ -21,8 +21,8 @@ PPSolver::~PPSolver() {
 void PPSolver::setOutline(int width, int height) {
     DieWidth = (float) width;
     DieHeight = (float) height;
-    xMaxMovement = DieWidth / 3000.;
-    yMaxMovement = DieHeight / 3000.;
+    xMaxMovement = DieWidth / 4000.;
+    yMaxMovement = DieHeight / 4000.;
 }
 
 void PPSolver::setSoftModuleNum(int num) {

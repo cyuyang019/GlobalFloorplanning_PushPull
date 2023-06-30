@@ -70,7 +70,6 @@ int main(int argc, char* argv[]) {
     int iteration = ( argc >= 4 ) ? std::atoi(argv[3]) : 1000;
 
     solver.setupPushForce(10);
-    //solver.setPushForce(1e5);
     for ( int phase = 1; phase <= 50; phase++ ) {
         solver.setRadiusRatio(phase * 0.02);
         std::cout << "Setting radius ratio: " << phase * 0.02 << std::endl;
@@ -81,7 +80,6 @@ int main(int argc, char* argv[]) {
             solver.moveModule();
         }
     }
-
 
     //************************************************
     //               output result
