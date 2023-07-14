@@ -66,9 +66,15 @@ void PPSolver::currentPosition2txt(std::string file_name) {
     ostream << DieWidth << " " << DieHeight << std::endl;
     for ( int i = 0; i < moduleNum; i++ ) {
         ostream << modules[i]->name << " ";
-        ostream << !( modules[i]->fixed ) << " ";
-        ostream << modules[i]->x << " " << modules[i]->y << " ";
-        ostream << modules[i]->radius * radiusRatio << std::endl;
+        ostream << ( ( modules[i]->fixed ) ? "FIXED" : "SOFT" ) << " ";
+        if ( modules[i]->fixed ) {
+            ostream << modules[i]->fx << " " << modules[i]->fy << " ";
+            ostream << modules[i]->fw << " " << modules[i]->fh << std::endl;
+        }
+        else {
+            ostream << modules[i]->x << " " << modules[i]->y << " ";
+            ostream << modules[i]->radius * radiusRatio << std::endl;
+        }
     }
     std::vector<PPModule*> added;
     for ( int i = 0; i < moduleNum; i++ ) {
@@ -99,6 +105,32 @@ float calcDistance(PPModule* ma, PPModule* mb) {
     return std::sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2));
 }
 
+void calcSeg2PntDist(float s1x, float s1y, float s2x, float s2y, float px, float py, float* distance, float* angle) {
+    //兩向量點乘P:p A:pt1 B:pt2 C:垂足
+    //矢量法
+    //不存在垂足C，求與A點距離
+    float APAB = ( s2x - s1x ) * ( px - s1x ) + ( s2y - s1y ) * ( py - s1y );
+    if ( APAB <= 0 ) {
+        *distance = std::sqrt(std::pow(( px - s1x ), 2) + std::pow(( py - s1y ), 2));
+        *angle = std::atan2(s1y - py, s1x - px);
+        return;
+    }
+    //不存在垂足C，求與B點距離
+    float length = std::sqrt(std::pow(( s1x - s2x ), 2) + std::pow(( s1y - s2y ), 2));
+    float AB2 = std::pow(length, 2);
+    if ( APAB >= AB2 ) {
+        *distance = std::sqrt(std::pow(( px - s2x ), 2) + std::pow(( py - s2y ), 2));
+        *angle = std::atan2(s2y - py, s2x - px);
+        return;
+    }
+    //存在垂足C 
+    float r = APAB / AB2;
+    float Cx = s1x + ( s2x - s1x ) * r;
+    float Cy = s1y + ( s2y - s1y ) * r;
+    *distance = std::sqrt(std::pow(( px - Cx ), 2) + std::pow(( py - Cy ), 2));
+    *angle = std::atan2(Cy - py, Cx - px);
+}
+
 void PPSolver::calcModuleForce() {
     PPModule* curModule;
     for ( int i = 0; i < moduleNum; i++ ) {
@@ -112,50 +144,116 @@ void PPSolver::calcModuleForce() {
         for ( int j = 0; j < curModule->connections.size(); j++ ) {
             PPModule* pullModule = curModule->connections[j]->module;
             float pullValue = curModule->connections[j]->value;
-            float x_distance = pullModule->x - curModule->x;
-            float y_distance = pullModule->y - curModule->y;
-            float angle = std::atan2(y_distance, x_distance);
-            if ( x_distance == 0 && y_distance == 0 )
-                continue;
+            float distance, x_distance, y_distance;
 
-            float curModuleRadius = curModule->radius * radiusRatio;
-            float pullModuleRadius = pullModule->radius * radiusRatio;
-            float distance = calcDistance(curModule, pullModule);
-            if ( distance <= curModuleRadius + pullModuleRadius )
-                continue;
+            if ( pullModule->fixed == true ) {
+                float fx = pullModule->fx;
+                float fy = pullModule->fy;
+                float fw = pullModule->fw;
+                float fh = pullModule->fh;
+                float d[4], a[4];
+                calcSeg2PntDist(fx, fy, fx, fy + fh, curModule->x, curModule->y, d, a);
+                calcSeg2PntDist(fx, fy + fh, fx + fw, fy + fh, curModule->x, curModule->y, d + 1, a + 1);
+                calcSeg2PntDist(fx + fw, fy, fx + fw, fy + fh, curModule->x, curModule->y, d + 2, a + 2);
+                calcSeg2PntDist(fx, fy, fx + fw, fy, curModule->x, curModule->y, d + 3, a + 3);
 
-            distance -= curModuleRadius + pullModuleRadius;
-            x_distance = distance * std::cos(angle);
-            y_distance = distance * std::sin(angle);
+                float minD = d[0], angle = a[0];
+                for ( int m = 1; m < 4; m++ )
+                    if ( d[m] < minD ) {
+                        minD = d[m];
+                        angle = a[m];
+                    }
+
+                distance = minD;
+
+                float curModuleRadius = curModule->radius * radiusRatio;
+                if ( distance <= curModuleRadius )
+                    continue;
+
+                distance -= curModuleRadius;
+                x_distance = distance * std::cos(angle);
+                y_distance = distance * std::sin(angle);
+            }
+            else {
+                x_distance = pullModule->x - curModule->x;
+                y_distance = pullModule->y - curModule->y;
+                if ( x_distance == 0 && y_distance == 0 )
+                    continue;
+
+                float angle = std::atan2(y_distance, x_distance);
+                float curModuleRadius = curModule->radius * radiusRatio;
+                float pullModuleRadius = pullModule->radius * radiusRatio;
+                float distance = calcDistance(curModule, pullModule);
+                if ( distance <= curModuleRadius + pullModuleRadius )
+                    continue;
+
+                distance -= curModuleRadius + pullModuleRadius;
+                x_distance = distance * std::cos(angle);
+                y_distance = distance * std::sin(angle);
+            }
+
             float force = distance * pullValue;
-            x_force += force * ( x_distance / distance );
-            y_force += force * ( y_distance / distance );
+            x_force += pullValue * x_distance;
+            y_force += pullValue * y_distance;
+
         }
 
         for ( int j = 0; j < moduleNum; j++ ) {
             if ( j == i )
                 continue;
             PPModule* pushModule = modules[j];
-            float x_distance = pushModule->x - curModule->x;
-            float y_distance = pushModule->y - curModule->y;
-            float angle = std::atan2(y_distance, x_distance);
-            if ( x_distance == 0 && y_distance == 0 )
-                continue;
+            float distance, x_distance, y_distance;
 
-            float curModuleRadius = curModule->radius * radiusRatio;
-            float pushModuleRadius = pushModule->radius * radiusRatio;
-            float distance = calcDistance(curModule, pushModule);
-            if ( distance >= curModuleRadius + pushModuleRadius )
-                continue;
+            if ( pushModule->fixed ) {
+                float fx = pushModule->fx;
+                float fy = pushModule->fy;
+                float fw = pushModule->fw;
+                float fh = pushModule->fh;
+                float d[4], a[4];
+                calcSeg2PntDist(fx, fy, fx, fy + fh, curModule->x, curModule->y, d, a);
+                calcSeg2PntDist(fx, fy + fh, fx + fw, fy + fh, curModule->x, curModule->y, d + 1, a + 1);
+                calcSeg2PntDist(fx + fw, fy, fx + fw, fy + fh, curModule->x, curModule->y, d + 2, a + 2);
+                calcSeg2PntDist(fx, fy, fx + fw, fy, curModule->x, curModule->y, d + 3, a + 3);
 
-            distance -= curModuleRadius + pushModuleRadius;
-            distance = -distance;
-            x_distance = distance * std::cos(angle);
-            y_distance = distance * std::sin(angle);
-            //std::cout << distance << std::endl;
+                float minD = d[0], angle = a[0];
+                for ( int m = 1; m < 4; m++ )
+                    if ( d[m] < minD ) {
+                        minD = d[m];
+                        angle = a[m];
+                    }
+
+                distance = minD;
+                float curModuleRadius = curModule->radius * radiusRatio;
+                if ( distance >= curModuleRadius )
+                    continue;
+
+                distance -= curModuleRadius;
+                distance = -distance;
+                x_distance = distance * std::cos(angle);
+                y_distance = distance * std::sin(angle);
+            }
+            else {
+                x_distance = pushModule->x - curModule->x;
+                y_distance = pushModule->y - curModule->y;
+                if ( x_distance == 0 && y_distance == 0 )
+                    continue;
+
+                float angle = std::atan2(y_distance, x_distance);
+                float curModuleRadius = curModule->radius * radiusRatio;
+                float pushModuleRadius = pushModule->radius * radiusRatio;
+                distance = calcDistance(curModule, pushModule);
+                if ( distance >= curModuleRadius + pushModuleRadius )
+                    continue;
+
+                distance -= curModuleRadius + pushModuleRadius;
+                distance = -distance;
+                x_distance = distance * std::cos(angle);
+                y_distance = distance * std::sin(angle);
+            }
+
             float force = pushForce * distance;
-            x_force -= force * ( x_distance / distance );
-            y_force -= force * ( y_distance / distance );
+            x_force -= pushForce * x_distance;
+            y_force -= pushForce * y_distance;
         }
 
         xForce[i] = x_force;

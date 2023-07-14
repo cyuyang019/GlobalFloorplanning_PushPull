@@ -8,6 +8,10 @@ PPModule::PPModule(std::string in_name, float in_x, float in_y, float in_area, b
     area = in_area;
     fixed = in_fixed;
     radius = std::sqrt(area / 3.1415926);
+    fx = 0;
+    fy = 0;
+    fw = 0;
+    fh = 0;
 }
 
 PPModule::~PPModule() {
@@ -21,4 +25,11 @@ void PPModule::addConnection(PPModule* in_module, float in_value) {
     nc->module = in_module;
     nc->value = in_value;
     connections.push_back(nc);
+}
+
+void PPModule::addFixedOutline(float fx, float fy, float fw, float fh) {
+    this->fx = fx;
+    this->fy = fy;
+    this->fw = fw;
+    this->fh = fh;
 }

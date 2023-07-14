@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
     for ( int i = 0; i < fixedModuleNum; i++ ) {
         istream >> s >> x >> y >> w >> h;
         PPModule* mod = new PPModule(s, x + w / 2., y + h / 2., (float) w * h, true);
+        mod->addFixedOutline(x, y, w, h);
         solver.addModule(mod);
         std::cout << "Reading Fixed Module " << s << "..." << std::endl;
     }

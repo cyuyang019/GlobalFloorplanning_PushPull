@@ -1,5 +1,11 @@
-case1: 178359248.00
+case1: 
+* circular fixed module: 178359248.00
+* rectangular fixed module: 183047104.00
 
-case2: 22560652.00
+case2:
+* circular fixed module: 22560652.00
+* rectangular fixed module: 24114070.00
 
-case3: 2113383.75
+case3:
+* circular fixed module: 2113383.75
+* rectangular fixed module: 2143867.75

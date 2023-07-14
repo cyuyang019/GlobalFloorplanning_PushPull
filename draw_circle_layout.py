@@ -6,12 +6,8 @@ import math
 import time
 
 
-def draw_block(ax, x, y, width, height, id):
-    if id > 0:
-        color = "#FCC"
-    else:
-        color = "#BBB"
-
+def draw_block(ax, x, y, width, height):
+    color = "#BBB"
     ax.add_patch(
         patches.Rectangle(
             (x, y),
@@ -25,12 +21,8 @@ def draw_block(ax, x, y, width, height, id):
     )
 
 
-def draw_circle(ax, x, y, radius, id):
-    if id > 0:
-        color = "#FCC"
-    else:
-        color = "#BBB"
-
+def draw_circle(ax, x, y, radius):
+    color = "#FCC"
     ax.add_patch(
         patches.Circle(
             (x, y),
@@ -80,8 +72,14 @@ name2pos = {}
 for block in range(total_block_number):
     ss = f[i].split(" ")
     plt.text(float(ss[2])-20, float(ss[3])-20, ss[0])
-    draw_circle(ax, float(ss[2]), float(ss[3]), float(ss[4]), int(ss[1]))
-    name2pos[ss[0]] = (float(ss[2]), float(ss[3]))
+    if ss[1] == "SOFT":
+        draw_circle(ax, float(ss[2]), float(ss[3]), float(ss[4]))
+        name2pos[ss[0]] = (float(ss[2]), float(ss[3]))
+    else:
+        draw_block(ax, float(ss[2]), float(ss[3]),
+                   float(ss[4]), float(ss[5]))
+        name2pos[ss[0]] = (float(ss[2])+float(ss[4])/2,
+                           float(ss[3])+float(ss[5])/2)
     i += 1
 
 j = i
