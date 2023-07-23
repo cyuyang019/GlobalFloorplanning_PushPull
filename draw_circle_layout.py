@@ -71,13 +71,15 @@ name2pos = {}
 
 for block in range(total_block_number):
     ss = f[i].split(" ")
-    plt.text(float(ss[2])-20, float(ss[3])-20, ss[0])
     if ss[1] == "SOFT":
         draw_circle(ax, float(ss[2]), float(ss[3]), float(ss[4]))
+        plt.text(float(ss[2])-20, float(ss[3])-20, ss[0])
         name2pos[ss[0]] = (float(ss[2]), float(ss[3]))
     else:
         draw_block(ax, float(ss[2]), float(ss[3]),
                    float(ss[4]), float(ss[5]))
+        plt.text(float(ss[2])+float(ss[4])/2-20,
+                 float(ss[3])+float(ss[5])/2-20, ss[0])
         name2pos[ss[0]] = (float(ss[2])+float(ss[4])/2,
                            float(ss[3])+float(ss[5])/2)
     i += 1

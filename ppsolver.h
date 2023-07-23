@@ -2,6 +2,7 @@
 #define __PPSOLVER_H__
 
 #include "ppmodule.h"
+#include "parser.h"
 #include <vector>
 #include <string>
 
@@ -23,6 +24,7 @@ public:
     void setConnectionNum(int num);
     void addModule(PPModule* in_module);
     void addConnection(std::string ma, std::string mb, float value);
+    void readFromParser(Parser parser);
     void currentPosition2txt(std::string file_name);
     float calcDeadspace();
     void calcModuleForce();
@@ -30,7 +32,7 @@ public:
     float calcEstimatedHPWL();
     void setRadiusRatio(float ratio);
     void setPushForce(float force);
-    void setupPushForce(float amplification = 1);
+    void setupPushForce(float amplification = 1.);
 };
 
 

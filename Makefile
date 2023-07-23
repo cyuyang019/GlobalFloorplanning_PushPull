@@ -8,31 +8,36 @@ debug: pprun_debug
 # LINKFLAGS = -pedantic -Wall -fomit-frame-pointer -funroll-all-loops -O3
 LINKFLAGS = 
 
-pprun: main.o ppsolver.o ppmodule.o
-	$(CXX) $(LINKFLAGS) $^ -o $@
+pprun: main.o ppsolver.o ppmodule.o parser.o
+	$(CXX) $(FLAGS) $(LINKFLAGS) $^ -o $@
 		
 main.o: main.cpp 
-	$(CXX) $(LINKFLAGS) $(CFLAGS) -DCOMPILETIME="\"`date`\"" $^ -o $@
+	$(CXX) $(FLAGS) $(LINKFLAGS) $(CFLAGS) -DCOMPILETIME="\"`date`\"" $^ -o $@
 
 ppsolver.o: ppsolver.cpp ppsolver.h
-	$(CXX) $(LINKFLAGS) $(CFLAGS) ppsolver.cpp -o $@
+	$(CXX) $(FLAGS) $(LINKFLAGS) $(CFLAGS) ppsolver.cpp -o $@
 			
 ppmodule.o: ppmodule.cpp ppmodule.h
-	$(CXX) $(LINKFLAGS) $(CFLAGS) ppmodule.cpp -o $@
+	$(CXX) $(FLAGS) $(LINKFLAGS) $(CFLAGS) ppmodule.cpp -o $@
 
+parser.o: parser.cpp parser.h
+	$(CXX) $(FLAGS) $(LINKFLAGS) $(CFLAGS) parser.cpp -o $@
 
 
 pprun_debug: main_debug.o ppsolver_debug.o ppmodule_debug.o
-	$(CXX) $(DEBUGFLAGS) $^ -o $@
+	$(CXX) $(FLAGS) $(DEBUGFLAGS) $^ -o $@
 		
 main_debug.o: main.cpp 
-	$(CXX) $(DEBUGFLAGS) $(CFLAGS) -DCOMPILETIME="\"`date`\"" $^ -o $@
+	$(CXX) $(FLAGS) $(DEBUGFLAGS) $(CFLAGS) -DCOMPILETIME="\"`date`\"" $^ -o $@
 
 ppsolver_debug.o: ppsolver.cpp ppsolver.h
-	$(CXX) $(DEBUGFLAGS) $(CFLAGS) ppsolver.cpp -o $@
+	$(CXX) $(FLAGS) $(DEBUGFLAGS) $(CFLAGS) ppsolver.cpp -o $@
 			
 ppmodule_debug.o: ppmodule.cpp ppmodule.h
-	$(CXX) $(DEBUGFLAGS) $(CFLAGS) ppmodule.cpp -o $@
+	$(CXX) $(FLAGS) $(DEBUGFLAGS) $(CFLAGS) ppmodule.cpp -o $@
+
+parser_debug.o: parser.cpp parser.h
+	$(CXX) $(FLAGS) $(DEBUGFLAGS) $(CFLAGS) parser.cpp -o $@
 
 
 clean:

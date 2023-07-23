@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include "ppmodule.h"
 #include "ppsolver.h"
+#include "parser.h"
 
 
 int main(int argc, char* argv[]) {
@@ -13,19 +14,58 @@ int main(int argc, char* argv[]) {
         std::cout << "Not enough argument\n";
         return -1;
     }
-    int dieWidth, dieHeight;
-    int softModuleNum, fixedModuleNum;
-    int connectionNum;
+
     PPSolver solver;
 
     //************************************************
     //               read input file
     //************************************************
+
+    std::string file_name = argv[1];
+    Parser parser(file_name);
+    solver.readFromParser(parser);
+
+
+    //************************************************
+    //               apply Hook's law
+    //************************************************
+
+    int iteration = ( argc >= 4 ) ? std::atoi(argv[3]) : 1000;
+
+    solver.setupPushForce(20);
+    for ( int phase = 1; phase <= 50; phase++ ) {
+        solver.setRadiusRatio(phase * 0.02);
+        //std::cout << "Setting radius ratio: " << phase * 0.02 << std::endl;
+        //std::string fname = "phase" + std::to_string(phase) + ".txt";
+        //solver.currentPosition2txt(fname);
+        for ( int i = 0; i < iteration; i++ ) {
+            solver.calcModuleForce();
+            solver.moveModule();
+        }
+    }
+
+
+    //************************************************
+    //               output result
+    //************************************************
+    solver.currentPosition2txt(argv[2]);
+
+    std::cout << "Dead Space: " << solver.calcDeadspace() << std::endl;
+    std::cout << std::fixed;
+    std::cout << "Estimated HPWL: " << std::setprecision(2) << solver.calcEstimatedHPWL() << std::endl;
+
+    return 0;
+}
+
+
+/*
+    // old read input part
     std::ifstream istream(argv[1]);
     if ( istream.fail() ) {
         std::cout << argv[1] << " doesn't exist.\n";
         return -1;
     }
+
     std::string s, m0, m1;
     int area, x, y, w, h, value;
 
@@ -62,34 +102,4 @@ int main(int argc, char* argv[]) {
     }
 
     istream.close();
-
-
-    //************************************************
-    //               apply Hook's law
-    //************************************************
-
-    int iteration = ( argc >= 4 ) ? std::atoi(argv[3]) : 1000;
-
-    solver.setupPushForce(10);
-    for ( int phase = 1; phase <= 50; phase++ ) {
-        solver.setRadiusRatio(phase * 0.02);
-        std::cout << "Setting radius ratio: " << phase * 0.02 << std::endl;
-        std::string fname = "phase" + std::to_string(phase) + ".txt";
-        solver.currentPosition2txt(fname);
-        for ( int i = 0; i < iteration; i++ ) {
-            solver.calcModuleForce();
-            solver.moveModule();
-        }
-    }
-
-    //************************************************
-    //               output result
-    //************************************************
-    solver.currentPosition2txt(argv[2]);
-
-    std::cout << "Dead Space: " << solver.calcDeadspace() << std::endl;
-    std::cout << std::fixed;
-    std::cout << "Estimated HPWL: " << std::setprecision(2) << solver.calcEstimatedHPWL() << std::endl;
-
-    return 0;
-}
+*/

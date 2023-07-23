@@ -60,6 +60,38 @@ void PPSolver::addConnection(std::string ma, std::string mb, float value) {
     m1->addConnection(m0, value);
 }
 
+void PPSolver::readFromParser(Parser parser) {
+    setOutline(parser.getDieWidth(), parser.getDieHeight());
+    setSoftModuleNum(parser.getSoftModuleNum());
+    setFixedModuleNum(parser.getFixedModuleNum());
+    setConnectionNum(parser.getConnectionNum());
+    for ( int i = 0; i < this->modules.size(); i++ ) {
+        delete this->modules[i];
+    }
+    this->modules.clear();
+    for ( int i = 0; i < this->moduleNum; i++ ) {
+        PPModule copy = parser.getModule(i);
+        PPModule* newModule = new PPModule(copy.name, copy.x, copy.y, copy.area, copy.fixed);
+        if ( copy.fixed )
+            newModule->addFixedOutline(copy.fx, copy.fy, copy.fw, copy.fh);
+        this->modules.push_back(newModule);
+    }
+    for ( int i = 0; i < connectionNum; i++ ) {
+        ConnStruct conn = parser.getConnection(i);
+
+        PPModule* m0;
+        PPModule* m1;
+        for ( int i = 0; i < modules.size(); i++ ) {
+            if ( modules[i]->name == conn.m0 )
+                m0 = modules[i];
+            else if ( modules[i]->name == conn.m1 )
+                m1 = modules[i];
+        }
+        m0->addConnection(m1, (float) conn.value);
+        m1->addConnection(m0, (float) conn.value);
+    }
+}
+
 void PPSolver::currentPosition2txt(std::string file_name) {
     std::ofstream ostream(file_name);
     ostream << "BLOCK " << moduleNum << " CONNECTOIN " << connectionNum << std::endl;
@@ -106,16 +138,13 @@ float calcDistance(PPModule* ma, PPModule* mb) {
 }
 
 void calcSeg2PntDist(float s1x, float s1y, float s2x, float s2y, float px, float py, float* distance, float* angle) {
-    //兩向量點乘P:p A:pt1 B:pt2 C:垂足
-    //矢量法
-    //不存在垂足C，求與A點距離
     float APAB = ( s2x - s1x ) * ( px - s1x ) + ( s2y - s1y ) * ( py - s1y );
     if ( APAB <= 0 ) {
         *distance = std::sqrt(std::pow(( px - s1x ), 2) + std::pow(( py - s1y ), 2));
         *angle = std::atan2(s1y - py, s1x - px);
         return;
     }
-    //不存在垂足C，求與B點距離
+
     float length = std::sqrt(std::pow(( s1x - s2x ), 2) + std::pow(( s1y - s2y ), 2));
     float AB2 = std::pow(length, 2);
     if ( APAB >= AB2 ) {
@@ -123,7 +152,7 @@ void calcSeg2PntDist(float s1x, float s1y, float s2x, float s2y, float px, float
         *angle = std::atan2(s2y - py, s2x - px);
         return;
     }
-    //存在垂足C 
+
     float r = APAB / AB2;
     float Cx = s1x + ( s2x - s1x ) * r;
     float Cy = s1y + ( s2y - s1y ) * r;
@@ -254,6 +283,7 @@ void PPSolver::calcModuleForce() {
             float force = pushForce * distance;
             x_force -= pushForce * x_distance;
             y_force -= pushForce * y_distance;
+
         }
 
         xForce[i] = x_force;
